@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+staticfiles/
+.DS_Store
+# Uncomment for real deployments – kept in the repo for a ready-to-run demo:
+# db.sqlite3
+# media/
