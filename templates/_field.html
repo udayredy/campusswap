@@ -1,0 +1,7 @@
+{% load market_extras %}
+<div class="mb-3">
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span class="text-muted fw-normal small">(optional)</span>{% endif %}</label>
+  {{ field|bs }}
+  {% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  {% if field.help_text %}<div class="form-text" id="{{ field.auto_id }}_help">{{ field.help_text|safe }}</div>{% endif %}
+</div>

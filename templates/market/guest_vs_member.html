@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Guest vs member{% endblock %}
+{% block content %}
+<div class="container py-4 py-lg-5">
+  <div class="text-center mb-4 mb-lg-5 mx-auto" style="max-width:720px">
+    <div class="eyebrow">Guest vs member</div>
+    <h1 class="mb-3">Look around freely. Join when you're ready to trade.</h1>
+    <p class="lead text-muted mb-0">Anyone can browse CampusSwap as a guest. Anything that involves another student – selling, messaging, reviewing, reporting – needs a free, verified student account.</p>
+  </div>
+
+  <div class="row g-4 mb-5 justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="compare-card guest">
+        <span class="mode-pill guest mb-2"><i class="bi bi-eye"></i>Guest</span>
+        <h2 class="h4">Browse without an account</h2>
+        <p class="text-muted">Great for checking prices before term starts.</p>
+        <ul>
+          <li><i class="bi bi-check-circle-fill"></i>Browse &amp; search every listing</li>
+          <li><i class="bi bi-check-circle-fill"></i>Filter by category, condition, price; sort</li>
+          <li><i class="bi bi-check-circle-fill"></i>Course Book Finder</li>
+          <li><i class="bi bi-check-circle-fill"></i>View photos, details &amp; seller ratings</li>
+          <li><i class="bi bi-check-circle-fill"></i>"Recently viewed" (kept in your session)</li>
+          <li class="off"><i class="bi bi-x-circle"></i>Post or manage listings</li>
+          <li class="off"><i class="bi bi-x-circle"></i>Message sellers</li>
+          <li class="off"><i class="bi bi-x-circle"></i>Save favourites</li>
+          <li class="off"><i class="bi bi-x-circle"></i>Rate, review or report</li>
+        </ul>
+        <a href="{% url 'market:browse' %}" class="btn btn-outline-primary w-100 mt-3">Continue as guest</a>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-5">
+      <div class="compare-card member">
+        <span class="mode-pill member mb-2"><i class="bi bi-patch-check-fill"></i>Student member · free</span>
+        <h2 class="h4">Buy, sell &amp; connect</h2>
+        <p class="text-muted">Sign up with your college email in about a minute.</p>
+        <ul>
+          <li><i class="bi bi-check-circle-fill"></i>Everything a guest can do, plus…</li>
+          <li><i class="bi bi-check-circle-fill"></i>Post listings with up to 5 photos</li>
+          <li><i class="bi bi-check-circle-fill"></i>Edit, mark as sold or delete anytime</li>
+          <li><i class="bi bi-check-circle-fill"></i>Message sellers – inbox with unread count</li>
+          <li><i class="bi bi-check-circle-fill"></i>Save favourites with one tap</li>
+          <li><i class="bi bi-check-circle-fill"></i>Rate sellers &amp; report suspicious listings</li>
+          <li><i class="bi bi-check-circle-fill"></i>Profile with program, photo &amp; ratings</li>
+          <li><i class="bi bi-check-circle-fill"></i>Suggestions for your program's courses</li>
+        </ul>
+        {% if user.is_authenticated %}
+        <a href="{% url 'market:listing_create' %}" class="btn btn-amber w-100 mt-3">You're a member – post an item</a>
+        {% else %}
+        <a href="{% url 'accounts:signup' %}" class="btn btn-amber w-100 mt-3">Create my student account</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <h2 class="h4 mb-3">Why do some features need an account?</h2>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3"><div class="cs-card p-3 h-100"><i class="bi bi-mortarboard fs-3" style="color:var(--cs-amber-dark)"></i><h3 class="h6 mt-2">Student-only</h3><p class="small text-muted mb-0">Sign-up requires a college email, so everyone you trade with is a fellow student.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="cs-card p-3 h-100"><i class="bi bi-person-check fs-3" style="color:var(--cs-amber-dark)"></i><h3 class="h6 mt-2">Accountability</h3><p class="small text-muted mb-0">Every listing, message and review is tied to a real profile with a rating history.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="cs-card p-3 h-100"><i class="bi bi-shield-lock fs-3" style="color:var(--cs-amber-dark)"></i><h3 class="h6 mt-2">Less spam</h3><p class="small text-muted mb-0">Guests can't flood sellers with messages or fake reviews.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="cs-card p-3 h-100"><i class="bi bi-flag fs-3" style="color:var(--cs-amber-dark)"></i><h3 class="h6 mt-2">Moderation</h3><p class="small text-muted mb-0">Reports come from verified students; 3 reports auto-hide a listing until an admin reviews it.</p></div></div>
+      </div>
+
+      <div class="cs-card mt-4 overflow-hidden">
+        <table class="table compare-table mb-0">
+          <caption class="visually-hidden">Feature comparison between guests and members</caption>
+          <thead class="table-light"><tr><th scope="col">Feature</th><th scope="col" class="text-center">Guest</th><th scope="col" class="text-center">Member</th></tr></thead>
+          <tbody>
+            {% for f, g in rows %}
+            <tr><th scope="row" class="fw-normal">{{ f }}</th>
+              <td class="text-center">{% if g %}<i class="bi bi-check-circle-fill yes"></i><span class="visually-hidden">Yes</span>{% else %}<i class="bi bi-dash-circle no"></i><span class="visually-hidden">No</span>{% endif %}</td>
+              <td class="text-center"><i class="bi bi-check-circle-fill yes"></i><span class="visually-hidden">Yes</span></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}Browse{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <form method="get" class="mb-3" role="search">
+    <div class="d-flex gap-2">
+      <label for="q" class="visually-hidden">Search</label>
+      <input id="q" type="search" name="q" value="{{ form.q.value|default:'' }}" class="form-control form-control-lg" placeholder="Search title, course code (COMP 1030) or ISBN">
+      <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i><span class="d-none d-md-inline ms-2">Search</span></button>
+      <button class="btn btn-outline-primary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filters" aria-controls="filters"><i class="bi bi-sliders"></i><span class="visually-hidden">Filters</span></button>
+    </div>
+  </form>
+
+  <div class="row g-4">
+    <aside class="col-lg-3">
+      <div class="offcanvas-lg offcanvas-start" tabindex="-1" id="filters" aria-labelledby="filters-h">
+        <div class="offcanvas-header"><h2 class="offcanvas-title h5" id="filters-h">Filters</h2><button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filters" aria-label="Close"></button></div>
+        <div class="offcanvas-body">
+          <form method="get" class="cs-card p-3 w-100 filter-panel">
+            <input type="hidden" name="q" value="{{ form.q.value|default:'' }}">
+            <h2 class="h6 d-none d-lg-block mb-3"><i class="bi bi-sliders me-1"></i>Filters</h2>
+            <div class="mb-3"><label class="form-label small" for="id_category">Category</label>{{ form.category|bs:"form-select-sm" }}</div>
+            <div class="mb-3"><label class="form-label small" for="id_condition">Condition</label>{{ form.condition|bs:"form-select-sm" }}</div>
+            <div class="mb-3"><span class="form-label small d-block">Price ($)</span>
+              <div class="d-flex gap-2 align-items-center">
+                <input type="number" min="0" step="1" name="min_price" value="{{ form.min_price.value|default:'' }}" class="form-control form-control-sm" placeholder="Min" aria-label="Minimum price">
+                <span class="text-muted">–</span>
+                <input type="number" min="0" step="1" name="max_price" value="{{ form.max_price.value|default:'' }}" class="form-control form-control-sm" placeholder="Max" aria-label="Maximum price">
+              </div>
+            </div>
+            <div class="mb-3"><label class="form-label small" for="id_sort">Sort by</label>{{ form.sort|bs:"form-select-sm" }}</div>
+            <button class="btn btn-primary w-100 btn-sm" type="submit">Apply filters</button>
+            {% if active_filters %}<a href="{% url 'market:browse' %}" class="btn btn-link btn-sm w-100 mt-1">Clear all</a>{% endif %}
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    <section class="col-lg-9" aria-labelledby="results-h">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 id="results-h" class="h5 mb-0">{{ page.paginator.count }} item{{ page.paginator.count|pluralize }}{% if form.q.value %} for “{{ form.q.value }}”{% endif %}</h1>
+        <div class="d-flex flex-wrap gap-2">
+          {% for key, label in active_filters %}
+            <a class="chip text-decoration-none" href="?{% if key == 'q' %}{% query_transform q=None page=None %}{% elif key == 'category' %}{% query_transform category=None page=None %}{% elif key == 'condition' %}{% query_transform condition=None page=None %}{% elif key == 'min_price' %}{% query_transform min_price=None page=None %}{% else %}{% query_transform max_price=None page=None %}{% endif %}" aria-label="Remove filter {{ label }}">{{ label }} <i class="bi bi-x"></i></a>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if page.object_list %}
+      <div class="row row-cols-2 row-cols-md-3 g-3">{% for listing in page.object_list %}<div class="col">{% include "market/_listing_card.html" %}</div>{% endfor %}</div>
+      {% if page.has_other_pages %}
+      <nav class="mt-4" aria-label="Results pages">
+        <ul class="pagination justify-content-center">
+          {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?{% query_transform page=page.previous_page_number %}" aria-label="Previous">‹</a></li>{% endif %}
+          {% for n in page.paginator.page_range %}{% if n == page.number %}<li class="page-item active" aria-current="page"><span class="page-link">{{ n }}</span></li>{% elif n > page.number|add:-3 and n < page.number|add:3 %}<li class="page-item"><a class="page-link" href="?{% query_transform page=n %}">{{ n }}</a></li>{% endif %}{% endfor %}
+          {% if page.has_next %}<li class="page-item"><a class="page-link" href="?{% query_transform page=page.next_page_number %}" aria-label="Next">›</a></li>{% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+      {% else %}
+      <div class="cs-card empty-state">
+        <i class="bi bi-search"></i>
+        <h2 class="h5 mt-3 text-dark">No matches yet</h2>
+        <p class="mb-3">Try a shorter keyword, a course code like <strong>COMP 1030</strong>, or clear some filters.</p>
+        <div class="d-flex gap-2 justify-content-center flex-wrap"><a href="{% url 'market:browse' %}" class="btn btn-outline-primary">Clear search</a><a href="{% url 'market:course_finder' %}" class="btn btn-primary">Open Course Finder</a></div>
+      </div>
+      {% endif %}
+      {% include "market/_recent.html" %}
+    </section>
+  </div>
+</div>
+{% endblock %}

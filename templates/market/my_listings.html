@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}My listings{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">My listings</h1>
+    <a href="{% url 'market:listing_create' %}" class="btn btn-amber"><i class="bi bi-plus-circle me-1"></i>New listing</a>
+  </div>
+  <ul class="nav nav-tabs-cs mb-3 border-bottom">
+    <li class="nav-item"><a class="nav-link {% if tab == 'active' %}active{% endif %}" href="?tab=active">For sale ({{ counts.active }})</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'sold' %}active{% endif %}" href="?tab=sold">Sold ({{ counts.sold }})</a></li>
+  </ul>
+  {% if listings %}
+  <div class="cs-card">
+    {% for listing in listings %}
+    <div class="d-flex flex-wrap flex-md-nowrap gap-3 align-items-center p-3 {% if not forloop.last %}border-bottom{% endif %}">
+      <a href="{{ listing.get_absolute_url }}" class="mini-card flex-shrink-0" style="width:88px"><div class="thumb">{% include "market/_cover.html" %}</div></a>
+      <div class="flex-grow-1" style="min-width:180px">
+        <a href="{{ listing.get_absolute_url }}" class="fw-bold text-reset text-decoration-none">{{ listing.title }}</a>
+        {% if listing.is_hidden %}<span class="badge text-bg-warning ms-1">Hidden by moderator</span>{% endif %}
+        <div class="small text-muted">{{ listing.price|money }} · {{ listing.get_condition_display }}{% if listing.course %} · {{ listing.course.code }}{% endif %}</div>
+        <div class="small text-muted"><i class="bi bi-eye me-1"></i>{{ listing.view_count }} <i class="bi bi-heart ms-2 me-1"></i>{{ listing.fav_n }} <i class="bi bi-chat ms-2 me-1"></i>{{ listing.msg_n }}</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'market:listing_edit' listing.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a>
+        <form method="post" action="{% url 'market:listing_toggle_sold' listing.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-sm {% if listing.is_sold %}btn-outline-success{% else %}btn-success{% endif %}">{% if listing.is_sold %}Relist{% else %}<i class="bi bi-check2"></i> Mark sold{% endif %}</button></form>
+        <a href="{% url 'market:listing_delete' listing.pk %}" class="btn btn-sm btn-outline-danger" aria-label="Delete {{ listing.title }}"><i class="bi bi-trash"></i></a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="cs-card empty-state"><i class="bi bi-box-seam"></i><p class="mt-2">{% if tab == 'sold' %}Nothing sold yet – it'll come!{% else %}You have no items for sale.{% endif %}</p>{% if tab != 'sold' %}<a href="{% url 'market:listing_create' %}" class="btn btn-primary">Post your first item</a>{% endif %}</div>
+  {% endif %}
+</div>
+{% endblock %}

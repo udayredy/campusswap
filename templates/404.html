@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Not found{% endblock %}
+{% block content %}
+<div class="container py-5 text-center" style="max-width:560px">
+  <div class="display-1 fw-bold" style="color:var(--cs-amber)">404</div>
+  <h1 class="h3">We couldn't find that page</h1>
+  <p class="text-muted">The item may have been sold, deleted or hidden by a moderator.</p>
+  <div class="d-flex gap-2 justify-content-center"><a href="{% url 'market:browse' %}" class="btn btn-primary">Browse listings</a><a href="{% url 'market:home' %}" class="btn btn-outline-primary">Home</a></div>
+</div>
+{% endblock %}

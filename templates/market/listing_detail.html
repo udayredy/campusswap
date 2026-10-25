@@ -1,0 +1,124 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'market:browse' %}{% if back_qs %}?{{ back_qs }}{% endif %}"><i class="bi bi-arrow-left me-1"></i>Back to results</a></li>
+      {% if listing.course %}<li class="breadcrumb-item"><a href="{{ listing.course.get_absolute_url }}">{{ listing.course.code }}</a></li>{% endif %}
+      <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width:240px">{{ listing.title }}</li>
+    </ol>
+  </nav>
+
+  {% if listing.is_hidden %}<div class="alert alert-warning"><i class="bi bi-eye-slash me-2"></i>This listing is <strong>hidden by moderators</strong> and only visible to you{% if user.is_staff %} (staff){% endif %}.</div>{% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-7" data-gallery>
+      <div class="gallery-main">
+        {% if listing.is_sold %}<span class="sold-ribbon">SOLD</span>{% endif %}
+        {% if photos %}<img src="{{ photos.0.image.url }}" alt="{{ listing.title }}">{% else %}<div class="placeholder-cover ph-{{ listing.category }}" style="font-size:5rem" role="img" aria-label="No photo"><i class="bi {{ listing.icon }}"></i></div>{% endif %}
+      </div>
+      {% if photos|length > 1 %}
+      <div class="gallery-thumbs">{% for p in photos %}<button type="button" class="{% if forloop.first %}active{% endif %}" data-src="{{ p.image.url }}" aria-label="Show photo {{ forloop.counter }}"><img src="{{ p.image.url }}" alt=""></button>{% endfor %}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-5">
+      <div class="cs-card p-4">
+        <div class="d-flex gap-2 mb-2 flex-wrap">
+          <span class="chip chip-{{ listing.condition|lower }}">{{ listing.get_condition_display }} condition</span>
+          <span class="chip"><i class="bi {{ listing.icon }}"></i>{{ listing.get_category_display }}</span>
+          {% if listing.is_sold %}<span class="chip" style="background:#fde2e2;color:#a61b1b">Sold</span>{% endif %}
+        </div>
+        <h1 class="h3 mb-2">{{ listing.title }}</h1>
+        <div class="detail-price {% if listing.is_free %}free{% endif %} mb-3">{{ listing.price|money }}</div>
+
+        <dl class="spec-list mb-4">
+          {% if listing.course %}<dt>Course</dt><dd><a href="{{ listing.course.get_absolute_url }}">{{ listing.course.code }}</a> <span class="text-muted fw-normal">{{ listing.course.name }}</span></dd>{% endif %}
+          {% if listing.isbn %}<dt>ISBN</dt><dd>{{ listing.isbn }}</dd>{% endif %}
+          <dt>Posted</dt><dd>{{ listing.created_at|date:"M j, Y" }}</dd>
+          <dt>Views</dt><dd>{{ listing.view_count }}</dd>
+        </dl>
+
+        {% if is_owner %}
+          <div class="d-grid gap-2">
+            <a href="{% url 'market:listing_edit' listing.pk %}" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Edit listing</a>
+            <form method="post" action="{% url 'market:listing_toggle_sold' listing.pk %}">{% csrf_token %}<button class="btn {% if listing.is_sold %}btn-outline-success{% else %}btn-success{% endif %} w-100">{% if listing.is_sold %}<i class="bi bi-arrow-counterclockwise me-1"></i>Mark as available{% else %}<i class="bi bi-check2-circle me-1"></i>Mark as sold{% endif %}</button></form>
+            <a href="{% url 'market:listing_delete' listing.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</a>
+          </div>
+        {% elif user.is_authenticated %}
+          {% if listing.is_sold and not has_talked %}
+            <div class="alert alert-secondary mb-3">This item has been sold.</div>
+          {% else %}
+          <form method="post" action="{% url 'market:conversation' listing.pk listing.seller.pk %}" class="mb-2" data-once>
+            {% csrf_token %}<input type="hidden" name="from" value="listing">
+            <label for="contact-body" class="form-label">Message {{ listing.seller.first_name|default:listing.seller.username }}</label>
+            <textarea id="contact-body" name="body" rows="3" maxlength="1000" class="form-control mb-2" required>Hi! Is “{{ listing.title|truncatechars:50 }}” still available?</textarea>
+            <button class="btn btn-amber w-100"><i class="bi bi-send me-1"></i>Contact seller</button>
+          </form>
+          {% if has_talked %}<a href="{% url 'market:conversation' listing.pk listing.seller.pk %}" class="small d-block text-center mb-2">View your conversation</a>{% endif %}
+          {% endif %}
+          {% include "market/_fav_button.html" with big=True %}
+        {% else %}
+          <div class="guest-gate p-3 mb-2">
+            <div class="fw-bold mb-1"><i class="bi bi-lock-fill me-1"></i>Members only</div>
+            <div class="small mb-3">Create a free student account to message the seller and save this item. You'll come right back here.</div>
+            <div class="d-grid gap-2">
+              <a href="{% url 'accounts:signup' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-amber"><i class="bi bi-send me-1"></i>Sign up to contact seller</a>
+              <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-primary">I already have an account</a>
+            </div>
+          </div>
+          {% include "market/_fav_button.html" with big=True %}
+        {% endif %}
+      </div>
+
+      <div class="cs-card p-3 mt-3">
+        <a href="{% url 'accounts:profile' listing.seller.username %}" class="seller-box text-decoration-none text-reset">
+          {% include "_avatar.html" with u=listing.seller cls="avatar-md" %}
+          <div class="flex-grow-1">
+            <div class="fw-bold">{{ listing.seller.profile.display_name }}{% if is_owner %} <span class="text-muted fw-normal">(you)</span>{% endif %}</div>
+            <div class="small text-muted">{% if seller_rating.count %}{% stars seller_rating.avg %} {{ seller_rating.avg }} · {{ seller_rating.count }} review{{ seller_rating.count|pluralize }}{% else %}New seller · no reviews yet{% endif %}</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted"></i>
+        </a>
+      </div>
+      <div class="small text-muted mt-3"><i class="bi bi-shield-check me-1"></i>Meet in a busy, public spot on campus and check the item before paying.</div>
+      {% if user.is_authenticated and not is_owner %}
+        <div class="mt-2 small">{% if already_reported %}<span class="text-muted"><i class="bi bi-flag-fill me-1"></i>You reported this listing</span>{% else %}<a href="{% url 'market:report_create' listing.pk %}" class="link-danger"><i class="bi bi-flag me-1"></i>Report this listing</a>{% endif %}</div>
+      {% elif not user.is_authenticated %}
+        <div class="mt-2 small"><a href="{% url 'market:report_create' listing.pk %}" class="link-secondary"><i class="bi bi-flag me-1"></i>Report this listing</a> <i class="bi bi-lock-fill text-muted small" title="Members only"></i></div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if listing.description %}
+  <section class="cs-card p-4 mt-4"><h2 class="h5">Description</h2><p class="mb-0" style="white-space:pre-line">{{ listing.description }}</p></section>
+  {% endif %}
+
+  <section class="mt-4" id="reviews" aria-labelledby="reviews-h">
+    <h2 id="reviews-h" class="h5">Reviews on this item</h2>
+    {% if review_form %}
+    <form method="post" action="{% url 'market:review_create' listing.pk %}" class="cs-card p-3 mb-3" data-once>
+      {% csrf_token %}
+      <div class="fw-semibold mb-1">How was your deal with {{ listing.seller.first_name|default:listing.seller.username }}?</div>
+      <fieldset class="mb-2"><legend class="visually-hidden">Rating</legend>
+        <div class="star-input">{% for v in "54321" %}<input type="radio" name="rating" value="{{ v }}" id="star{{ v }}" required><label for="star{{ v }}" title="{{ v }} star{{ v|pluralize }}"><i class="bi bi-star-fill"></i><span class="visually-hidden">{{ v }} stars</span></label>{% endfor %}</div>
+      </fieldset>
+      <div class="d-flex gap-2"><label for="id_comment" class="visually-hidden">Comment</label><input id="id_comment" name="comment" maxlength="300" class="form-control" placeholder="Short comment (optional)"><button class="btn btn-primary text-nowrap">Post review</button></div>
+    </form>
+    {% elif user.is_authenticated and not is_owner and not my_review %}
+    <p class="small text-muted"><i class="bi bi-info-circle me-1"></i>You can rate this seller after you've messaged them about this item.</p>
+    {% endif %}
+    {% if reviews %}
+    <div class="cs-card">{% for r in reviews %}<div class="p-3 {% if not forloop.last %}border-bottom{% endif %}"><div class="d-flex justify-content-between"><div>{% stars r.rating %} <strong class="ms-1">{{ r.reviewer.username }}</strong>{% if r.reviewer == user %} <span class="text-muted small">(you)</span>{% endif %}</div><span class="small text-muted">{{ r.created_at|date:"M j" }}</span></div>{% if r.comment %}<div class="mt-1">“{{ r.comment }}”</div>{% endif %}</div>{% endfor %}</div>
+    {% else %}<p class="text-muted small">No reviews on this item yet.</p>{% endif %}
+  </section>
+
+  {% if related %}
+  <section class="mt-5"><div class="section-title"><h2 class="h5">More for {{ listing.course.code }}</h2><a href="{{ listing.course.get_absolute_url }}" class="small fw-semibold">See all</a></div>
+    <div class="row row-cols-2 row-cols-md-4 g-3">{% for listing in related %}<div class="col">{% include "market/_listing_card.html" %}</div>{% endfor %}</div>
+  </section>
+  {% endif %}
+  {% include "market/_recent.html" %}
+</div>
+{% endblock %}

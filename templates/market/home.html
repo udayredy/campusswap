@@ -1,0 +1,103 @@
+{% extends "base.html" %}{% load market_extras humanize %}
+{% block title %}{% if user.is_authenticated %}Home{% else %}Student marketplace{% endif %}{% endblock %}
+{% block content %}
+<section class="hero pb-5 pt-4 pt-lg-5 mb-4">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        {% if user.is_authenticated %}
+          <span class="mode-pill member mb-3"><i class="bi bi-patch-check-fill"></i>Member</span>
+          <h1 class="mb-3">Welcome back, <span class="hl">{{ user.first_name|default:user.username }}</span>.</h1>
+          <p class="lead mb-4">Find the books you need this term, or turn last term's into cash.</p>
+        {% else %}
+          <span class="mode-pill guest mb-3"><i class="bi bi-eye"></i>Browsing as guest</span>
+          <h1 class="mb-3">Used textbooks &amp; campus gear, <span class="hl">from students who just finished the course.</span></h1>
+          <p class="lead mb-4">A trusted, student-only marketplace. Search by course code, compare prices, and meet on campus.</p>
+        {% endif %}
+        <form action="{% url 'market:browse' %}" class="hero-search d-flex gap-2" role="search">
+          <label for="hero-q" class="visually-hidden">Search</label>
+          <input id="hero-q" name="q" class="form-control" type="search" placeholder="Try “COMP 1030”, “calculus” or an ISBN">
+          <button class="btn btn-amber px-4 d-flex align-items-center flex-shrink-0" type="submit"><i class="bi bi-search"></i><span class="d-none d-sm-inline ms-2">Search</span></button>
+        </form>
+        {% if popular_courses %}
+        <div class="mt-3 d-flex flex-wrap gap-2 align-items-center small">
+          <span class="text-white-50">Popular:</span>
+          {% for c in popular_courses|slice:":4" %}<a href="{% url 'market:course_detail' c.pk %}" class="chip chip-course text-decoration-none">{{ c.code }}</a>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-5">
+        {% if user.is_authenticated %}
+        <div class="row g-2 text-center">
+          <div class="col-6"><a href="{% url 'market:listing_create' %}" class="btn btn-amber w-100 py-3"><i class="bi bi-plus-circle d-block fs-3 mb-1"></i>Sell an item</a></div>
+          <div class="col-6"><a href="{% url 'market:inbox' %}" class="btn btn-outline-light w-100 py-3"><i class="bi bi-chat-dots d-block fs-3 mb-1"></i>Inbox{% if unread_count %} ({{ unread_count }}){% endif %}</a></div>
+          <div class="col-6"><a href="{% url 'market:my_listings' %}" class="btn btn-outline-light w-100 py-3"><i class="bi bi-box-seam d-block fs-3 mb-1"></i>My listings</a></div>
+          <div class="col-6"><a href="{% url 'market:favourites' %}" class="btn btn-outline-light w-100 py-3"><i class="bi bi-heart d-block fs-3 mb-1"></i>Favourites</a></div>
+        </div>
+        {% else %}
+        <div class="bg-white text-dark rounded-4 p-4 shadow">
+          <h2 class="h5 mb-3">Two ways to use CampusSwap</h2>
+          <div class="d-flex gap-3 mb-3">
+            <i class="bi bi-eye fs-4 text-warning"></i>
+            <div><strong>Guest</strong> – no account needed<div class="small text-muted">Browse, search, use the Course Finder, view item details.</div></div>
+          </div>
+          <div class="d-flex gap-3 mb-3">
+            <i class="bi bi-patch-check-fill fs-4" style="color:var(--cs-navy)"></i>
+            <div><strong>Student member</strong> – free, 1 minute<div class="small text-muted">Everything above <em>plus</em> post listings, message sellers, save favourites, rate &amp; report.</div></div>
+          </div>
+          <div class="d-grid gap-2">
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary">Create student account</a>
+            <a href="{% url 'market:browse' %}" class="btn btn-outline-primary">Keep browsing as guest</a>
+          </div>
+          <div class="text-center mt-2 small"><a href="{% url 'market:guest_vs_member' %}">See the full comparison</a></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-4 gap-md-5 mt-4 pt-2">
+      <div class="hero-stat"><div class="num">{{ stats.listings|intcomma }}</div><div class="lbl">items for sale</div></div>
+      <div class="hero-stat"><div class="num">{{ stats.students|intcomma }}</div><div class="lbl">students</div></div>
+      <div class="hero-stat"><div class="num">{{ stats.courses|intcomma }}</div><div class="lbl">courses</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <section aria-labelledby="cat-h" class="mb-5">
+    <h2 id="cat-h" class="visually-hidden">Shop by category</h2>
+    <div class="row row-cols-3 row-cols-md-6 g-2 g-md-3">
+      {% for value, label, icon in categories %}
+      <div class="col"><a class="cat-tile" href="{% url 'market:browse' %}?category={{ value }}"><i class="bi {{ icon }}"></i>{{ label }}</a></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if for_you %}
+  <section class="mb-5" aria-labelledby="foryou-h">
+    <div class="section-title"><div><div class="eyebrow">Picked for you</div><h2 id="foryou-h">For {{ program_label }} students</h2></div></div>
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">{% for listing in for_you %}<div class="col">{% include "market/_listing_card.html" %}</div>{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="latest-h">
+    <div class="section-title"><div><div class="eyebrow">Fresh on campus</div><h2 id="latest-h">Latest listings</h2></div><a href="{% url 'market:browse' %}" class="fw-semibold text-nowrap">View all <i class="bi bi-arrow-right"></i></a></div>
+    {% if latest %}
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">{% for listing in latest %}<div class="col">{% include "market/_listing_card.html" %}</div>{% endfor %}</div>
+    {% else %}
+    <div class="cs-card empty-state"><i class="bi bi-inbox"></i><p class="mt-2 mb-3">No listings yet – be the first!</p><a href="{% url 'market:listing_create' %}" class="btn btn-primary">Post an item</a></div>
+    {% endif %}
+  </section>
+
+  {% include "market/_recent.html" %}
+
+  <section class="mt-5" aria-labelledby="how-h">
+    <div class="eyebrow text-center">How it works</div>
+    <h2 id="how-h" class="text-center mb-4">From sign-up to swap in five steps</h2>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 text-center">
+      {% for icon, t, d in steps %}
+      <div class="col"><div class="cs-card p-3 h-100"><div class="fs-2 mb-1" style="color:var(--cs-amber-dark)"><i class="bi {{ icon }}"></i></div><div class="fw-bold">{{ forloop.counter }}. {{ t }}</div><div class="small text-muted">{{ d }}</div></div></div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

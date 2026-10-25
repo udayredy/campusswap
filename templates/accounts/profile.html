@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}{{ person.profile.display_name }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="cs-card p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+      {% include "_avatar.html" with u=person cls="avatar-lg" %}
+      <div class="flex-grow-1">
+        <h1 class="h3 mb-1">{{ person.profile.display_name }} <span class="text-muted fs-6 fw-normal">@{{ person.username }}</span></h1>
+        <div class="text-muted mb-2">{% if person.profile.program %}<i class="bi bi-mortarboard me-1"></i>{{ person.profile.get_program_display }} · {% endif %}Member since {{ person.date_joined|date:"M Y" }}</div>
+        {% if rating.count %}<div>{% stars rating.avg %} <strong>{{ rating.avg }}</strong> <span class="text-muted">({{ rating.count }} review{{ rating.count|pluralize }})</span></div>{% else %}<div class="text-muted small"><i class="bi bi-star me-1"></i>No reviews yet</div>{% endif %}
+        {% if person.profile.bio %}<p class="mt-2 mb-0">{{ person.profile.bio }}</p>{% endif %}
+      </div>
+      <div class="d-flex gap-3 text-center">
+        <div class="stat-box cs-card"><div class="n">{{ listings|length }}</div><div class="small text-muted">For sale</div></div>
+        <div class="stat-box cs-card"><div class="n">{{ sold_count }}</div><div class="small text-muted">Sold</div></div>
+      </div>
+      {% if is_me %}<a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit profile</a>{% endif %}
+    </div>
+  </div>
+
+  <h2 class="h5 mb-3">{% if is_me %}Your{% else %}{{ person.first_name|default:person.username }}'s{% endif %} items for sale</h2>
+  {% if listings %}
+  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 mb-5">{% for listing in listings %}<div class="col">{% include "market/_listing_card.html" %}</div>{% endfor %}</div>
+  {% else %}
+  <div class="cs-card empty-state mb-5"><i class="bi bi-box-seam"></i><p class="mt-2 mb-0">Nothing for sale right now.</p>{% if is_me %}<a href="{% url 'market:listing_create' %}" class="btn btn-primary mt-3">Post an item</a>{% endif %}</div>
+  {% endif %}
+
+  <h2 class="h5 mb-3" id="reviews">Reviews</h2>
+  {% if reviews %}
+  <div class="cs-card">
+    {% for r in reviews %}
+    <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
+      <div class="d-flex justify-content-between flex-wrap gap-2"><div>{% stars r.rating %} <strong class="ms-1">{{ r.reviewer.username }}</strong> <span class="text-muted small">on <a href="{{ r.listing.get_absolute_url }}">{{ r.listing.title|truncatechars:40 }}</a></span></div><span class="text-muted small">{{ r.created_at|date:"M j, Y" }}</span></div>
+      {% if r.comment %}<p class="mb-0 mt-1">“{{ r.comment }}”</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="text-muted">No reviews yet.</p>{% endif %}
+</div>
+{% endblock %}
