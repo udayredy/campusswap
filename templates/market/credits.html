@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Image credits{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:960px">
+  <div class="eyebrow">About the sample data</div>
+  <h1 class="h3">Image credits</h1>
+  <p class="text-muted">The demo listings use real textbooks and freely licensed photos so the marketplace looks the way it would with real students. Nothing here is endorsed by the publishers or photographers.</p>
+
+  <h2 class="h5 mt-4">Book covers – Open Library</h2>
+  <p class="small text-muted">Titles and ISBNs were checked against <a href="https://openlibrary.org" rel="noopener">Open Library</a>, and covers come from the <a href="https://openlibrary.org/dev/docs/api/covers" rel="noopener">Open Library Covers API</a>. They are shown only to identify which edition a student is selling. Cover art © the respective publishers.</p>
+  <div class="cs-card overflow-hidden mb-4">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th scope="col" style="width:48px"></th><th scope="col">Title</th><th scope="col" class="d-none d-md-table-cell">Author(s)</th><th scope="col">ISBN</th></tr></thead>
+      <tbody>{% for b in books %}<tr><td><img src="{{ b.cover }}" alt="" width="32" height="44" style="object-fit:cover" loading="lazy" onerror="this.style.visibility='hidden'"></td><td><a href="{{ b.ol }}" rel="noopener">{{ b.title }}</a></td><td class="d-none d-md-table-cell small">{{ b.authors }}</td><td class="small text-nowrap">{{ b.isbn }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+
+  <h2 class="h5">Product photos – Wikimedia Commons</h2>
+  <p class="small text-muted">Resized for the site. Each one is used under the licence shown.</p>
+  <div class="cs-card overflow-hidden">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th scope="col">Listing</th><th scope="col">Photo</th><th scope="col">Author</th><th scope="col">Licence</th></tr></thead>
+      <tbody>{% for it in items %}<tr><td>{{ it.title }}</td><td class="small"><a href="{{ it.page }}" rel="noopener">{{ it.file }}</a></td><td class="small">{{ it.author }}</td><td class="small text-nowrap">{% if it.license_url %}<a href="{{ it.license_url }}" rel="noopener license">{{ it.license }}</a>{% else %}{{ it.license }}{% endif %}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

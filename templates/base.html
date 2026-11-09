@@ -1,0 +1,101 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CampusSwap{% endblock %} · CampusSwap</title>
+  <meta name="description" content="CampusSwap – the student-only marketplace for used textbooks and campus essentials.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2314213d'/><path d='M9 12h11l-3-3M23 20H12l3 3' stroke='%23f5a623' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/campusswap.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<a class="skip-link btn btn-amber" href="#main">Skip to content</a>
+{% with url=request.resolver_match.url_name %}
+<nav class="navbar navbar-expand-lg cs-nav sticky-top py-2" aria-label="Main">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'market:home' %}">
+      <i class="bi bi-arrow-left-right text-warning"></i><span>Campus<span class="swap">Swap</span></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto ms-lg-3 gap-lg-1">
+        <li class="nav-item"><a class="nav-link {% if url == 'browse' %}active{% endif %}" href="{% url 'market:browse' %}"><i class="bi bi-grid me-1"></i>Browse</a></li>
+        <li class="nav-item"><a class="nav-link {% if url == 'course_finder' or url == 'course_detail' %}active{% endif %}" href="{% url 'market:course_finder' %}"><i class="bi bi-journal-bookmark me-1"></i>Course Finder</a></li>
+        <li class="nav-item"><a class="nav-link {% if url == 'listing_create' %}active{% endif %}" href="{% url 'market:listing_create' %}"><i class="bi bi-plus-circle me-1"></i>Sell{% if not user.is_authenticated %} <i class="bi bi-lock-fill small opacity-75" title="Members only"></i>{% endif %}</a></li>
+      </ul>
+      {% if url != 'home' and url != 'browse' %}
+      <form class="nav-search d-flex me-lg-3 my-2 my-lg-0" role="search" action="{% url 'market:browse' %}">
+        <input class="form-control form-control-sm" type="search" name="q" placeholder="Search books, course code…" aria-label="Search listings">
+      </form>
+      {% endif %}
+      <ul class="navbar-nav align-items-lg-center gap-lg-1">
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link position-relative {% if url == 'inbox' or url == 'conversation' %}active{% endif %}" href="{% url 'market:inbox' %}" aria-label="Inbox{% if unread_count %}, {{ unread_count }} unread{% endif %}"><i class="bi bi-chat-dots"></i><span class="d-lg-none ms-2">Inbox</span>{% if unread_count %} <span class="badge rounded-pill bg-warning text-dark badge-dot">{{ unread_count }}</span>{% endif %}</a></li>
+          <li class="nav-item"><a class="nav-link {% if url == 'favourites' %}active{% endif %}" href="{% url 'market:favourites' %}" aria-label="My favourites"><i class="bi bi-heart"></i><span class="d-lg-none ms-2">Favourites</span> <span id="fav-count" class="badge rounded-pill bg-light text-dark badge-dot {% if not fav_count %}d-none{% endif %}">{{ fav_count }}</span></a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {% include "_avatar.html" with u=user cls="" %}<span>{{ user.first_name|default:user.username }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+              <li><span class="dropdown-item-text small"><span class="mode-pill member"><i class="bi bi-patch-check-fill"></i>Member</span></span></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:profile' user.username %}"><i class="bi bi-person me-2"></i>My profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'market:my_listings' %}"><i class="bi bi-box-seam me-2"></i>My listings</a></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-gear me-2"></i>Edit profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}"><i class="bi bi-key me-2"></i>Change password</a></li>
+              {% if user.is_staff %}<li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-check me-2"></i>Moderation (Admin)</a></li>{% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></form></li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item d-none d-lg-block me-1"><a href="{% url 'market:guest_vs_member' %}" class="mode-pill guest text-decoration-none" title="You're browsing as a guest – what does that mean?"><i class="bi bi-eye"></i>Guest</a></li>
+          <li class="nav-item"><a class="nav-link {% if url == 'login' %}active{% endif %}" href="{% url 'accounts:login' %}{% if url != 'login' and url != 'signup' %}?next={{ request.get_full_path|urlencode }}{% endif %}">Log in</a></li>
+          <li class="nav-item ms-lg-1"><a class="btn btn-amber btn-sm px-3 my-2 my-lg-0" href="{% url 'accounts:signup' %}">Sign up free</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{% if not user.is_authenticated and url != 'login' and url != 'signup' and url != 'guest_vs_member' and 'password' not in url %}
+<div class="guest-banner py-2">
+  <div class="container d-flex flex-wrap align-items-center gap-2 justify-content-between">
+    <div><i class="bi bi-eye me-1"></i><strong>You're browsing as a guest.</strong> <span class="d-none d-sm-inline">Search and view anything – sign up to post, message sellers and save favourites.</span></div>
+    <div class="d-flex gap-3 small"><a href="{% url 'market:guest_vs_member' %}" class="link-dark">Guest vs member</a><a href="{% url 'accounts:signup' %}" class="fw-bold link-dark">Create account →</a></div>
+  </div>
+</div>
+{% endif %}
+{% endwith %}
+
+{% if messages %}
+<div class="container toast-stack mt-3" aria-live="polite">
+  {% for m in messages %}
+  <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-2" role="{% if m.level >= 30 %}alert{% else %}status{% endif %}">
+    <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'danger' %}bi-exclamation-octagon-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+    <div>{{ m }}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main id="main">{% block content %}{% endblock %}</main>
+
+<footer class="footer mt-5 py-4">
+  <div class="container d-flex flex-column flex-md-row justify-content-between gap-3">
+    <div><strong class="text-white">Campus<span style="color:var(--cs-amber)">Swap</span></strong> — buy smart, sell easy, waste less.<br><span class="small">Group 7 · Built with Django &amp; Bootstrap 5. Always meet in public, on-campus spots.</span></div>
+    <div class="d-flex gap-3 flex-wrap small align-items-start">
+      <a href="{% url 'market:browse' %}">Browse</a><a href="{% url 'market:course_finder' %}">Course Finder</a><a href="{% url 'market:guest_vs_member' %}">Guest vs Member</a><a href="{% url 'market:credits' %}">Image credits</a>{% if not user.is_authenticated %}<a href="{% url 'accounts:signup' %}">Sign up</a>{% endif %}
+    </div>
+  </div>
+</footer>
+<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/campusswap.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

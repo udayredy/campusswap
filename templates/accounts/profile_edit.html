@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}Edit profile{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:720px">
+  <h1 class="h3 mb-4">Edit profile</h1>
+  {% include "_form_errors.html" with form=pform %}
+  <form method="post" enctype="multipart/form-data" class="cs-card p-4" novalidate data-once>
+    {% csrf_token %}
+    <div class="d-flex align-items-center gap-3 mb-4">{% include "_avatar.html" with u=user cls="avatar-lg" %}<div><div class="fw-bold">{{ user.username }}</div><div class="text-muted small">{{ user.email }}</div></div></div>
+    <div class="row"><div class="col-sm-6">{% include "_field.html" with field=uform.first_name %}</div><div class="col-sm-6">{% include "_field.html" with field=uform.last_name %}</div></div>
+    {% include "_field.html" with field=pform.program %}
+    {% include "_field.html" with field=pform.photo %}
+    {% include "_field.html" with field=pform.bio %}
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save changes</button><a class="btn btn-outline-secondary" href="{% url 'accounts:profile' user.username %}">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}

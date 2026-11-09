@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% load market_extras %}
+{% block title %}Create your account{% endblock %}
+{% block content %}
+<div class="container auth-wrap py-4 py-lg-5">
+  <div class="row g-0 shadow-sm">
+    {% include "accounts/_auth_side.html" %}
+    <div class="col-lg-7 bg-white auth-form p-4 p-lg-5">
+      <h1 class="h3 mb-1">Create your student account</h1>
+      <p class="text-muted mb-4">Free forever. Already a member? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Log in</a></p>
+      {% include "_form_errors.html" %}
+      <form method="post" novalidate data-once>
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        <div class="row">
+          <div class="col-sm-6">{% include "_field.html" with field=form.first_name %}</div>
+          <div class="col-sm-6">{% include "_field.html" with field=form.last_name %}</div>
+        </div>
+        {% include "_field.html" with field=form.email %}
+        <div class="row">
+          <div class="col-sm-6">{% include "_field.html" with field=form.username %}</div>
+          <div class="col-sm-6">{% include "_field.html" with field=form.program %}</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_password1">Password</label>
+          <div class="input-group">{{ form.password1|bs }}<button class="btn btn-outline-secondary" type="button" data-toggle-pw="id_password1" aria-label="Show password"><i class="bi bi-eye"></i></button></div>
+          {% for e in form.password1.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          <div class="d-flex align-items-center gap-2 mt-2"><div class="pw-meter flex-grow-1" id="pw-meter"><span></span></div><small id="pw-label" class="text-muted" style="min-width:80px" aria-live="polite"></small></div>
+          <div class="form-text">At least 8 characters, not all numbers, not too common.</div>
+        </div>
+        {% include "_field.html" with field=form.password2 %}
+        <div class="form-check mb-4">
+          {{ form.agree|bs }}
+          <label class="form-check-label small" for="{{ form.agree.id_for_label }}">{{ form.agree.label }}</label>
+          {% for e in form.agree.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

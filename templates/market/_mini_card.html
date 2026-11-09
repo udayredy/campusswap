@@ -1,0 +1,5 @@
+{% load market_extras %}
+<a class="mini-card" href="{{ listing.get_absolute_url }}">
+  <div class="thumb">{% include "market/_cover.html" %}</div>
+  <div class="p-2"><div class="fw-bold">{{ listing.price|money }}</div><div class="text-truncate">{{ listing.title }}</div></div>
+</a>

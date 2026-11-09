@@ -1,0 +1,17 @@
+{% load market_extras %}
+<article class="listing-card">
+  {% if listing.is_sold %}<span class="sold-ribbon">SOLD</span>{% endif %}
+  {% include "market/_fav_button.html" %}
+  <div class="thumb">{% include "market/_cover.html" %}</div>
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <span class="price {% if listing.is_free %}free{% endif %}">{{ listing.price|money }}</span>
+      <span class="chip chip-{{ listing.condition|lower }}">{{ listing.get_condition_display }}</span>
+    </div>
+    <a href="{{ listing.get_absolute_url }}" class="title">{{ listing.title }}</a>
+    <div class="meta mt-2 d-flex flex-wrap gap-1 align-items-center">
+      {% if listing.course %}<span class="chip chip-course"><i class="bi bi-journal"></i>{{ listing.course.code }}</span>{% else %}<span class="chip"><i class="bi {{ listing.icon }}"></i>{{ listing.get_category_display }}</span>{% endif %}
+      <span class="ms-auto">{{ listing.created_at|ago }}</span>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,10 @@
+<div class="col-lg-5 auth-side p-4 p-lg-5 d-flex flex-column justify-content-center">
+  <h2 class="h3 text-white mb-3">{{ side_title|default:"Join your campus marketplace" }}</h2>
+  <ul class="list-unstyled mb-4">
+    <li class="d-flex gap-3 mb-3"><i class="bi bi-plus-circle fs-4"></i><div><strong>Sell in minutes</strong><div class="small opacity-75">List books, calculators and dorm stuff with photos.</div></div></li>
+    <li class="d-flex gap-3 mb-3"><i class="bi bi-chat-dots fs-4"></i><div><strong>Message sellers</strong><div class="small opacity-75">Ask questions or make an offer – no phone numbers shared.</div></div></li>
+    <li class="d-flex gap-3 mb-3"><i class="bi bi-heart fs-4"></i><div><strong>Save favourites</strong><div class="small opacity-75">Keep a shortlist of everything you need this term.</div></div></li>
+    <li class="d-flex gap-3"><i class="bi bi-shield-check fs-4"></i><div><strong>Students only</strong><div class="small opacity-75">College email required. Ratings and reports keep it safe.</div></div></li>
+  </ul>
+  <a href="{% url 'market:browse' %}" class="link-light small"><i class="bi bi-eye me-1"></i>Not ready? Keep browsing as a guest →</a>
+</div>

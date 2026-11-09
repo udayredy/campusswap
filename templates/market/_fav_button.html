@@ -1,0 +1,17 @@
+{% if user.is_authenticated %}
+  {% if user != listing.seller %}
+  <form method="post" action="{% url 'market:favourite_toggle' listing.pk %}" class="js-fav {{ wrap_class }}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if big %}
+    <button type="submit" class="btn btn-outline-danger w-100" aria-pressed="{% if listing.pk in fav_ids %}true{% else %}false{% endif %}"><i class="bi {% if listing.pk in fav_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> <span class="fav-label">{% if listing.pk in fav_ids %}Saved{% else %}Save{% endif %}</span></button>
+    {% else %}
+    <button type="submit" class="fav-btn" aria-pressed="{% if listing.pk in fav_ids %}true{% else %}false{% endif %}" title="{% if listing.pk in fav_ids %}Remove from favourites{% else %}Save to favourites{% endif %}" aria-label="Save {{ listing.title }} to favourites"><i class="bi {% if listing.pk in fav_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i></button>
+    {% endif %}
+  </form>
+  {% endif %}
+{% else %}
+  {% if big %}
+  <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary w-100 btn-locked"><i class="bi bi-heart"></i> Save <i class="bi bi-lock-fill"></i></a>
+  {% else %}
+  <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}" class="fav-btn guest {{ wrap_class }}" title="Log in to save favourites" aria-label="Log in to save {{ listing.title }}"><i class="bi bi-heart"></i></a>
+  {% endif %}
+{% endif %}
